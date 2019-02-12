@@ -104,7 +104,7 @@
                   realip: "10.0.40.3/24"
 
   tasks:
-  - name: Lab 6 -- Deploy Configuration To All Leafs
+  - name: Lab 7 -- Deploy Configuration To All Leafs
     nclu:
         commit: true
         description: "Deploy interface configuration"
@@ -140,7 +140,7 @@
             bgpasn: "65201"
   tasks:
 
-  - name: Lab 6 -- Deploy Configuration to All Spines
+  - name: Lab 7 -- Deploy Configuration to All Spines
     nclu:
         commit: true
         description: "Deploy interface configuration"
