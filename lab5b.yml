@@ -65,10 +65,10 @@
                   realip: "10.0.20.3/24"
 
   tasks:
-  - name: Lab 5a -- Deploy Leaf interface configuration
+  - name: Lab 6 -- Deploy Leaf interface configuration
     nclu:
         commit: true
-        description: "Deploy Lab5a interface configuration"
+        description: "Deploy Lab6 interface configuration"
         commands:
             - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
 
@@ -83,6 +83,10 @@
             - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
             - add interface swp51 ospf area 0
             - add interface swp51 ospf network point-to-point
+            - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
+            - add bgp neighbor {{ devices[ansible_hostname].rr }} remote-as internal
+            - add bgp neighbor {{ devices[ansible_hostname].rr }} update-source lo
+
 
 
 - name: Configure Spines
@@ -108,6 +112,13 @@
         commands:
             - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
             - add interface swp1-4
+            - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
+            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} remote-as internal
+            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} update-source lo
+            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} route-reflector-client
+            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} remote-as internal
+            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} update-source lo
+            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} route-reflector-client
             - add loopback lo ospf area 0
             - add interface swp1 ip address {{ devices[ansible_hostname].loopback }}
             - add interface swp2 ip address {{ devices[ansible_hostname].loopback }}
