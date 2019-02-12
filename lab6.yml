@@ -1,14 +1,12 @@
 - name: Wipe Configuration
   hosts: spine,leaf
   become: yes
-  gather_facts: no
   roles:
   - reset
 
-- name: Lab 1 -- Setup PTM
-  hosts: spine,leaf
+- name: Lab 1 Setup PTM
+  hosts: leaf01,leaf02,spine01
   become: yes
-  gather_facts: no
   tasks:
   - name: Download the topology.dot file from the OOB-MGMT-SERVER
     get_url:
@@ -19,154 +17,153 @@
   - name: Restart PTM Daemon to Apply new Topology.dot file
     service: name=ptmd state=restarted
 
+  - name: Test PTM
+    shell: ptmctl
+    register: ptm_output
+    failed_when: ('pass' not in ptm_output.stdout)
+
+  - name: Install License
+    shell: cl-license -i http://192.168.0.254/license.lic
+    register: cllicense_output
+    failed_when: ('License file installed.' not in cllicense_output.stdout)
 
 
-- name: Configure CLAG on Leaf Switches
-  hosts: leaf01:leaf02:leaf03:leaf04
+- name: Configure SVI and EVPN on Leaf01 and Leaf02 Switches
+  hosts: leaf01:leaf02
   become: yes
   vars:
     devices:
         leaf01:
-            clag_role: "primary"
-            clag_mac: "44:38:39:FF:00:01"
-            clag_backupip: "192.168.0.12"
             loopback: "10.255.255.1/32"
-            bgpasn: "65101"
+            bgpasn: "65100"
+            rr: "10.255.255.101"
             VLANS:
                 - vlan: "10"
                   vrrip: "10.0.10.1/24"
                   vrrmac: "00:00:00:00:1a:10"
-                  bond: "SERVER01"
                   interface: "swp1"
                   realip: "10.0.10.2/24"
                 - vlan: "20"
                   vrrip: "10.0.20.1/24"
                   vrrmac: "00:00:00:00:1a:20"
-                  bond: "SERVER02"
-                  interface: "swp2"
+                  interface: "swp1"
                   realip: "10.0.20.2/24"
         leaf02:
-            clag_role: "secondary"
-            clag_mac: "44:38:39:FF:00:01"
-            clag_backupip: "192.168.0.11"
             loopback: "10.255.255.2/32"
-            bgpasn: "65102"
+            bgpasn: "65100"
+            rr: "10.255.255.101"
             VLANS:
                 - vlan: "10"
                   vrrip: "10.0.10.1/24"
                   vrrmac: "00:00:00:00:1a:10"
-                  bond: "SERVER01"
-                  interface: "swp1"
+                  interface: "swp2"
                   realip: "10.0.10.3/24"
                 - vlan: "20"
                   vrrip: "10.0.20.1/24"
                   vrrmac: "00:00:00:00:1a:20"
-                  bond: "SERVER02"
                   interface: "swp2"
                   realip: "10.0.20.3/24"
-        leaf03:
-            clag_role: "primary"
-            clag_mac: "44:38:39:FF:00:02"
-            clag_backupip: "192.168.0.14"
-            loopback: "10.255.255.3/32"
-            bgpasn: "65103"
-            VLANS:
-                - vlan: "30"
-                  vrrip: "10.0.30.1/24"
-                  vrrmac: "00:00:00:00:1a:30"
-                  bond: "SERVER03"
-                  interface: "swp1"
-                  realip: "10.0.30.2/24"
-                - vlan: "40"
-                  vrrip: "10.0.40.1/24"
-                  vrrmac: "00:00:00:00:1a:40"
-                  bond: "SERVER04"
-                  interface: "swp2"
-                  realip: "10.0.40.2/24"
-        leaf04:
-            clag_role: "secondary"
-            clag_mac: "44:38:39:FF:00:02"
-            clag_backupip: "192.168.0.13"
-            loopback: "10.255.255.4/32"
-            bgpasn: "65104"
-            VLANS:
-                - vlan: "30"
-                  vrrip: "10.0.30.1/24"
-                  vrrmac: "00:00:00:00:1a:30"
-                  bond: "SERVER03"
-                  interface: "swp1"
-                  realip: "10.0.30.3/24"
-                - vlan: "40"
-                  vrrip: "10.0.40.1/24"
-                  vrrmac: "00:00:00:00:1a:40"
-                  bond: "SERVER04"
-                  interface: "swp2"
-                  realip: "10.0.40.3/24"
 
   tasks:
-  - name: Lab 6 -- Deploy Configuration To All Leafs
+  - name: Lab 6 -- Deploy Leaf interface configuration
     nclu:
         commit: true
-        description: "Deploy interface configuration"
+        description: "Deploy Lab6 interface configuration"
         commands:
-            - add clag peer sys-mac {{ devices[ansible_hostname].clag_mac }} interface swp49-50 {{ devices[ansible_hostname].clag_role }} backup-ip {{ devices[ansible_hostname].clag_backupip }}
-            - add clag port bond {{ devices[ansible_hostname].VLANS[0].bond}} interface {{ devices[ansible_hostname].VLANS[0].interface }} clag-id 1
-            - add clag port bond {{ devices[ansible_hostname].VLANS[1].bond}} interface {{ devices[ansible_hostname].VLANS[1].interface }} clag-id 2
-            - add bond {{ devices[ansible_hostname].VLANS[0].bond }} bridge access  {{ devices[ansible_hostname].VLANS[0].vlan }}
-            - add bond {{ devices[ansible_hostname].VLANS[1].bond }} bridge access  {{ devices[ansible_hostname].VLANS[1].vlan }}
+            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
             - add vlan {{ devices[ansible_hostname].VLANS[0].vlan }} ip address {{ devices[ansible_hostname].VLANS[0].realip }}
             - add vlan {{ devices[ansible_hostname].VLANS[1].vlan }} ip address {{ devices[ansible_hostname].VLANS[1].realip }}
             - add vlan {{ devices[ansible_hostname].VLANS[0].vlan }} ip address-virtual {{ devices[ansible_hostname].VLANS[0].vrrmac }} {{ devices[ansible_hostname].VLANS[0].vrrip }}
             - add vlan {{ devices[ansible_hostname].VLANS[1].vlan }} ip address-virtual {{ devices[ansible_hostname].VLANS[1].vrrmac }} {{ devices[ansible_hostname].VLANS[1].vrrip }}
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
+            - add interface {{ devices[ansible_hostname].VLANS[0].interface }} bridge trunk vlans {{ devices[ansible_hostname].VLANS[0].vlan }}
+            - add interface {{ devices[ansible_hostname].VLANS[1].interface }} bridge trunk vlans {{ devices[ansible_hostname].VLANS[1].vlan }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} vxlan id {{ devices[ansible_hostname].VLANS[0].vlan }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} vxlan local-tunnelip {{ devices[ansible_hostname].loopback[:-3] }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} bridge access {{ devices[ansible_hostname].VLANS[0].vlan }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} bridge learning off
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} vxlan id {{ devices[ansible_hostname].VLANS[1].vlan }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} vxlan local-tunnelip {{ devices[ansible_hostname].loopback[:-3] }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} bridge access {{ devices[ansible_hostname].VLANS[1].vlan }}
+            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} bridge learning off
+
+  - name: Lab 6 -- Deploy Leaf FRR configuration
+    nclu:
+        commit: true
+        description: "Deploy Lab6 FRR configuration"
+        commands:
+
+            - add loopback lo ospf area 0
+            - add interface swp51 ip address {{ devices[ansible_hostname].loopback }}
+            - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
+            - add interface swp51 ospf area 0
+            - add interface swp51 ospf network point-to-point
             - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
-            - add bgp neighbor swp51 interface remote-as external
-            - add bgp neighbor swp52 interface remote-as external
-            - add bgp network {{ devices[ansible_hostname].loopback }}
-            - add bgp network {{ devices[ansible_hostname].VLANS[0].vrrip }}
-            - add bgp network {{ devices[ansible_hostname].VLANS[1].vrrip }}
-            - add bgp bestpath as-path multipath-relax
+            - add bgp neighbor {{ devices[ansible_hostname].rr }} remote-as internal
+            - add bgp neighbor {{ devices[ansible_hostname].rr }} update-source lo
+            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].rr }} activate
+            - add bgp l2vpn evpn advertise-all-vni
+
+
 
 - name: Configure Spines
-  hosts: spine
+  hosts: spine01
   become: yes
   vars:
     devices:
         spine01:
             loopback: "10.255.255.101/32"
-            bgpasn: "65201"
+            bgpasn: "65100"
+            leaf01: "10.255.255.1"
+            leaf02: "10.255.255.2"
         spine02:
             loopback: "10.255.255.102/32"
-            bgpasn: "65201"
+            bgpasn: "65100"
+            leaf01: "10.255.255.1"
+            leaf02: "10.255.255.2"
   tasks:
-
-  - name: Lab 6 -- Deploy Configuration to All Spines
+  - name: Lab 6 -- Deploy Configuration on Spine01
     nclu:
         commit: true
         description: "Deploy interface configuration"
         commands:
             - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
+            - add interface swp1-4
             - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
-            - add bgp neighbor swp1 interface remote-as external
-            - add bgp neighbor swp2 interface remote-as external
-            - add bgp neighbor swp3 interface remote-as external
-            - add bgp neighbor swp4 interface remote-as external
-            - add bgp network {{ devices[ansible_hostname].loopback }}
-            - add bgp bestpath as-path multipath-relax
+            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} remote-as internal
+            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} update-source lo
+            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} route-reflector-client
+            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} remote-as internal
+            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} update-source lo
+            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} route-reflector-client
+            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf01 }} activate
+            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf01 }} route-reflector-client
+            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf02 }} activate
+            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf02 }} route-reflector-client
+            - add loopback lo ospf area 0
+            - add interface swp1 ip address {{ devices[ansible_hostname].loopback }}
+            - add interface swp2 ip address {{ devices[ansible_hostname].loopback }}
+            - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
+            - add interface swp1 ospf area 0
+            - add interface swp1 ospf network point-to-point
+            - add interface swp2 ospf area 0
+            - add interface swp2 ospf network point-to-point
+
+
 
 - name: Restart NetQ
-  hosts: spine,leaf
+  hosts: leaf01,leaf02,spine01
   become: yes
   tasks:
   - name: Restart the netq-agent
     service: name=netq-agent state=restarted
 
 - name: Server Configuration
-  hosts: server
+  hosts: server01,server02
   become: yes
   tasks:
   - name: Copy Interfaces Configuration File
-    copy: src=./{{ ansible_hostname }}.cfg dest=/etc/network/interfaces
+    copy: src=./{{ ansible_hostname }}_lab6.cfg dest=/etc/network/interfaces
 
   - name: Restart Networking
     service: name=networking state=restarted
+
