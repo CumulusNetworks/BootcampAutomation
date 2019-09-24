@@ -154,13 +154,6 @@
             - add bgp network {{ devices[ansible_hostname].loopback }}
             - add bgp bestpath as-path multipath-relax
 
-- name: Restart NetQ
-  hosts: spine,leaf
-  become: yes
-  tasks:
-  - name: Restart the netq-agent
-    service: name=netq-agent state=restarted
-
 - name: Server Configuration
   hosts: server
   become: yes

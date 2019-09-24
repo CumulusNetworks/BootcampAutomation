@@ -128,15 +128,6 @@
             - add interface swp2 ospf area 0
             - add interface swp2 ospf network point-to-point
 
-
-
-- name: Restart NetQ
-  hosts: leaf01,leaf02,spine01
-  become: yes
-  tasks:
-  - name: Restart the netq-agent
-    service: name=netq-agent state=restarted
-
 - name: Server Configuration
   hosts: server01,server02
   become: yes
