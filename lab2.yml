@@ -49,6 +49,14 @@
   - name: Enable and Start restserver
     service: name=restserver state=started enabled=yes
 
+  - name: Adjust Nginx configuration to listen on external ports
+    copy: 
+      src: nginx-restapi.conf
+      dest: /etc/nginx/sites-available/nginx-restapi.conf
+
+  - name: Restart Nginx
+    service: name=nginx state=restarted enabled=yes
+
 - name: Lab 2 Test API
   hosts: leaf02
   become: yes
