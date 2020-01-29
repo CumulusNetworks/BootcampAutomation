@@ -46,18 +46,18 @@
         commit: true
         description: "Deploy interface configuration"
         commands:
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
             - add bond BOND0 bond slaves swp49-50
             - add bridge bridge vids 10,20
-            - add bridge bridge ports BOND0,{{ devices[ansible_hostname].bridgeports }}
-            - add interface {{ devices[ansible_hostname].bridgeports }} bridge access 10
+            - add bridge bridge ports BOND0,{{ devices[inventory_hostname].bridgeports }}
+            - add interface {{ devices[inventory_hostname].bridgeports }} bridge access 10
 
 - name: Server Configuration
   hosts: server01,server02
   become: yes
   tasks:
   - name: Copy Interfaces Configuration File
-    copy: src=./{{ ansible_hostname }}_lab3.cfg dest=/etc/network/interfaces
+    copy: src=./{{ inventory_hostname }}_lab3.cfg dest=/etc/network/interfaces
 
   - name: Restart Networking
     service: name=networking state=restarted

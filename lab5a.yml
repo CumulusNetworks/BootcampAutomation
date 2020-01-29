@@ -70,7 +70,7 @@
         commit: true
         description: "Deploy Lab5a interface configuration"
         commands:
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
 
   - name: Lab 6 -- Deploy Leaf FRR configuration
     nclu:
@@ -79,8 +79,8 @@
         commands:
 
             - add loopback lo ospf area 0
-            - add interface swp51 ip address {{ devices[ansible_hostname].loopback }}
-            - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
+            - add interface swp51 ip address {{ devices[inventory_hostname].loopback }}
+            - add ospf router-id {{ devices[inventory_hostname].loopback[:-3] }}
             - add interface swp51 ospf area 0
             - add interface swp51 ospf network point-to-point
 
@@ -106,12 +106,12 @@
         commit: true
         description: "Deploy interface configuration"
         commands:
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
             - add interface swp1-4
             - add loopback lo ospf area 0
-            - add interface swp1 ip address {{ devices[ansible_hostname].loopback }}
-            - add interface swp2 ip address {{ devices[ansible_hostname].loopback }}
-            - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
+            - add interface swp1 ip address {{ devices[inventory_hostname].loopback }}
+            - add interface swp2 ip address {{ devices[inventory_hostname].loopback }}
+            - add ospf router-id {{ devices[inventory_hostname].loopback[:-3] }}
             - add interface swp1 ospf area 0
             - add interface swp1 ospf network point-to-point
             - add interface swp2 ospf area 0
@@ -122,7 +122,7 @@
   become: yes
   tasks:
   - name: Copy Interfaces Configuration File
-    copy: src=./{{ ansible_hostname }}_lab6.cfg dest=/etc/network/interfaces
+    copy: src=./{{ inventory_hostname }}_lab6.cfg dest=/etc/network/interfaces
 
   - name: Restart Networking
     service: name=networking state=restarted

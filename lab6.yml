@@ -70,21 +70,21 @@
         commit: true
         description: "Deploy Lab6 interface configuration"
         commands:
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
-            - add vlan {{ devices[ansible_hostname].VLANS[0].vlan }} ip address {{ devices[ansible_hostname].VLANS[0].realip }}
-            - add vlan {{ devices[ansible_hostname].VLANS[1].vlan }} ip address {{ devices[ansible_hostname].VLANS[1].realip }}
-            - add vlan {{ devices[ansible_hostname].VLANS[0].vlan }} ip address-virtual {{ devices[ansible_hostname].VLANS[0].vrrmac }} {{ devices[ansible_hostname].VLANS[0].vrrip }}
-            - add vlan {{ devices[ansible_hostname].VLANS[1].vlan }} ip address-virtual {{ devices[ansible_hostname].VLANS[1].vrrmac }} {{ devices[ansible_hostname].VLANS[1].vrrip }}
-            - add interface {{ devices[ansible_hostname].VLANS[0].interface }} bridge trunk vlans {{ devices[ansible_hostname].VLANS[0].vlan }}
-            - add interface {{ devices[ansible_hostname].VLANS[1].interface }} bridge trunk vlans {{ devices[ansible_hostname].VLANS[1].vlan }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} vxlan id {{ devices[ansible_hostname].VLANS[0].vlan }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} vxlan local-tunnelip {{ devices[ansible_hostname].loopback[:-3] }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} bridge access {{ devices[ansible_hostname].VLANS[0].vlan }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[0].vlan }} bridge learning off
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} vxlan id {{ devices[ansible_hostname].VLANS[1].vlan }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} vxlan local-tunnelip {{ devices[ansible_hostname].loopback[:-3] }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} bridge access {{ devices[ansible_hostname].VLANS[1].vlan }}
-            - add vxlan vni{{ devices[ansible_hostname].VLANS[1].vlan }} bridge learning off
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
+            - add vlan {{ devices[inventory_hostname].VLANS[0].vlan }} ip address {{ devices[inventory_hostname].VLANS[0].realip }}
+            - add vlan {{ devices[inventory_hostname].VLANS[1].vlan }} ip address {{ devices[inventory_hostname].VLANS[1].realip }}
+            - add vlan {{ devices[inventory_hostname].VLANS[0].vlan }} ip address-virtual {{ devices[inventory_hostname].VLANS[0].vrrmac }} {{ devices[inventory_hostname].VLANS[0].vrrip }}
+            - add vlan {{ devices[inventory_hostname].VLANS[1].vlan }} ip address-virtual {{ devices[inventory_hostname].VLANS[1].vrrmac }} {{ devices[inventory_hostname].VLANS[1].vrrip }}
+            - add interface {{ devices[inventory_hostname].VLANS[0].interface }} bridge trunk vlans {{ devices[inventory_hostname].VLANS[0].vlan }}
+            - add interface {{ devices[inventory_hostname].VLANS[1].interface }} bridge trunk vlans {{ devices[inventory_hostname].VLANS[1].vlan }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[0].vlan }} vxlan id {{ devices[inventory_hostname].VLANS[0].vlan }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[0].vlan }} vxlan local-tunnelip {{ devices[inventory_hostname].loopback[:-3] }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[0].vlan }} bridge access {{ devices[inventory_hostname].VLANS[0].vlan }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[0].vlan }} bridge learning off
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[1].vlan }} vxlan id {{ devices[inventory_hostname].VLANS[1].vlan }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[1].vlan }} vxlan local-tunnelip {{ devices[inventory_hostname].loopback[:-3] }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[1].vlan }} bridge access {{ devices[inventory_hostname].VLANS[1].vlan }}
+            - add vxlan vni{{ devices[inventory_hostname].VLANS[1].vlan }} bridge learning off
 
   - name: Lab 6 -- Deploy Leaf FRR configuration
     nclu:
@@ -93,14 +93,14 @@
         commands:
 
             - add loopback lo ospf area 0
-            - add interface swp51 ip address {{ devices[ansible_hostname].loopback }}
-            - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
+            - add interface swp51 ip address {{ devices[inventory_hostname].loopback }}
+            - add ospf router-id {{ devices[inventory_hostname].loopback[:-3] }}
             - add interface swp51 ospf area 0
             - add interface swp51 ospf network point-to-point
-            - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
-            - add bgp neighbor {{ devices[ansible_hostname].rr }} remote-as internal
-            - add bgp neighbor {{ devices[ansible_hostname].rr }} update-source lo
-            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].rr }} activate
+            - add bgp autonomous-system {{ devices[inventory_hostname].bgpasn }}
+            - add bgp neighbor {{ devices[inventory_hostname].rr }} remote-as internal
+            - add bgp neighbor {{ devices[inventory_hostname].rr }} update-source lo
+            - add bgp l2vpn evpn neighbor {{ devices[inventory_hostname].rr }} activate
             - add bgp l2vpn evpn advertise-all-vni
 
 
@@ -126,23 +126,23 @@
         commit: true
         description: "Deploy interface configuration"
         commands:
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
             - add interface swp1-4
-            - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
-            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} remote-as internal
-            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} update-source lo
-            - add bgp neighbor {{ devices[ansible_hostname].leaf01 }} route-reflector-client
-            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} remote-as internal
-            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} update-source lo
-            - add bgp neighbor {{ devices[ansible_hostname].leaf02 }} route-reflector-client
-            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf01 }} activate
-            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf01 }} route-reflector-client
-            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf02 }} activate
-            - add bgp l2vpn evpn neighbor {{ devices[ansible_hostname].leaf02 }} route-reflector-client
+            - add bgp autonomous-system {{ devices[inventory_hostname].bgpasn }}
+            - add bgp neighbor {{ devices[inventory_hostname].leaf01 }} remote-as internal
+            - add bgp neighbor {{ devices[inventory_hostname].leaf01 }} update-source lo
+            - add bgp neighbor {{ devices[inventory_hostname].leaf01 }} route-reflector-client
+            - add bgp neighbor {{ devices[inventory_hostname].leaf02 }} remote-as internal
+            - add bgp neighbor {{ devices[inventory_hostname].leaf02 }} update-source lo
+            - add bgp neighbor {{ devices[inventory_hostname].leaf02 }} route-reflector-client
+            - add bgp l2vpn evpn neighbor {{ devices[inventory_hostname].leaf01 }} activate
+            - add bgp l2vpn evpn neighbor {{ devices[inventory_hostname].leaf01 }} route-reflector-client
+            - add bgp l2vpn evpn neighbor {{ devices[inventory_hostname].leaf02 }} activate
+            - add bgp l2vpn evpn neighbor {{ devices[inventory_hostname].leaf02 }} route-reflector-client
             - add loopback lo ospf area 0
-            - add interface swp1 ip address {{ devices[ansible_hostname].loopback }}
-            - add interface swp2 ip address {{ devices[ansible_hostname].loopback }}
-            - add ospf router-id {{ devices[ansible_hostname].loopback[:-3] }}
+            - add interface swp1 ip address {{ devices[inventory_hostname].loopback }}
+            - add interface swp2 ip address {{ devices[inventory_hostname].loopback }}
+            - add ospf router-id {{ devices[inventory_hostname].loopback[:-3] }}
             - add interface swp1 ospf area 0
             - add interface swp1 ospf network point-to-point
             - add interface swp2 ospf area 0
@@ -153,7 +153,7 @@
   become: yes
   tasks:
   - name: Copy Interfaces Configuration File
-    copy: src=./{{ ansible_hostname }}_lab6.cfg dest=/etc/network/interfaces
+    copy: src=./{{ inventory_hostname }}_lab6.cfg dest=/etc/network/interfaces
 
   - name: Restart Networking
     service: name=networking state=restarted

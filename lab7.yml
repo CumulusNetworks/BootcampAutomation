@@ -109,22 +109,22 @@
         commit: true
         description: "Deploy interface configuration"
         commands:
-            - add clag peer sys-mac {{ devices[ansible_hostname].clag_mac }} interface swp49-50 {{ devices[ansible_hostname].clag_role }} backup-ip {{ devices[ansible_hostname].clag_backupip }}
-            - add clag port bond {{ devices[ansible_hostname].VLANS[0].bond}} interface {{ devices[ansible_hostname].VLANS[0].interface }} clag-id 1
-            - add clag port bond {{ devices[ansible_hostname].VLANS[1].bond}} interface {{ devices[ansible_hostname].VLANS[1].interface }} clag-id 2
-            - add bond {{ devices[ansible_hostname].VLANS[0].bond }} bridge access  {{ devices[ansible_hostname].VLANS[0].vlan }}
-            - add bond {{ devices[ansible_hostname].VLANS[1].bond }} bridge access  {{ devices[ansible_hostname].VLANS[1].vlan }}
-            - add vlan {{ devices[ansible_hostname].VLANS[0].vlan }} ip address {{ devices[ansible_hostname].VLANS[0].realip }}
-            - add vlan {{ devices[ansible_hostname].VLANS[1].vlan }} ip address {{ devices[ansible_hostname].VLANS[1].realip }}
-            - add vlan {{ devices[ansible_hostname].VLANS[0].vlan }} ip address-virtual {{ devices[ansible_hostname].VLANS[0].vrrmac }} {{ devices[ansible_hostname].VLANS[0].vrrip }}
-            - add vlan {{ devices[ansible_hostname].VLANS[1].vlan }} ip address-virtual {{ devices[ansible_hostname].VLANS[1].vrrmac }} {{ devices[ansible_hostname].VLANS[1].vrrip }}
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
-            - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
+            - add clag peer sys-mac {{ devices[inventory_hostname].clag_mac }} interface swp49-50 {{ devices[inventory_hostname].clag_role }} backup-ip {{ devices[inventory_hostname].clag_backupip }}
+            - add clag port bond {{ devices[inventory_hostname].VLANS[0].bond}} interface {{ devices[inventory_hostname].VLANS[0].interface }} clag-id 1
+            - add clag port bond {{ devices[inventory_hostname].VLANS[1].bond}} interface {{ devices[inventory_hostname].VLANS[1].interface }} clag-id 2
+            - add bond {{ devices[inventory_hostname].VLANS[0].bond }} bridge access  {{ devices[inventory_hostname].VLANS[0].vlan }}
+            - add bond {{ devices[inventory_hostname].VLANS[1].bond }} bridge access  {{ devices[inventory_hostname].VLANS[1].vlan }}
+            - add vlan {{ devices[inventory_hostname].VLANS[0].vlan }} ip address {{ devices[inventory_hostname].VLANS[0].realip }}
+            - add vlan {{ devices[inventory_hostname].VLANS[1].vlan }} ip address {{ devices[inventory_hostname].VLANS[1].realip }}
+            - add vlan {{ devices[inventory_hostname].VLANS[0].vlan }} ip address-virtual {{ devices[inventory_hostname].VLANS[0].vrrmac }} {{ devices[inventory_hostname].VLANS[0].vrrip }}
+            - add vlan {{ devices[inventory_hostname].VLANS[1].vlan }} ip address-virtual {{ devices[inventory_hostname].VLANS[1].vrrmac }} {{ devices[inventory_hostname].VLANS[1].vrrip }}
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
+            - add bgp autonomous-system {{ devices[inventory_hostname].bgpasn }}
             - add bgp neighbor swp51 interface remote-as external
             - add bgp neighbor swp52 interface remote-as external
-            - add bgp network {{ devices[ansible_hostname].loopback }}
-            - add bgp network {{ devices[ansible_hostname].VLANS[0].vrrip }}
-            - add bgp network {{ devices[ansible_hostname].VLANS[1].vrrip }}
+            - add bgp network {{ devices[inventory_hostname].loopback }}
+            - add bgp network {{ devices[inventory_hostname].VLANS[0].vrrip }}
+            - add bgp network {{ devices[inventory_hostname].VLANS[1].vrrip }}
             - add bgp bestpath as-path multipath-relax
 
 - name: Configure Spines
@@ -145,13 +145,13 @@
         commit: true
         description: "Deploy interface configuration"
         commands:
-            - add loopback lo ip address {{ devices[ansible_hostname].loopback }}
-            - add bgp autonomous-system {{ devices[ansible_hostname].bgpasn }}
+            - add loopback lo ip address {{ devices[inventory_hostname].loopback }}
+            - add bgp autonomous-system {{ devices[inventory_hostname].bgpasn }}
             - add bgp neighbor swp1 interface remote-as external
             - add bgp neighbor swp2 interface remote-as external
             - add bgp neighbor swp3 interface remote-as external
             - add bgp neighbor swp4 interface remote-as external
-            - add bgp network {{ devices[ansible_hostname].loopback }}
+            - add bgp network {{ devices[inventory_hostname].loopback }}
             - add bgp bestpath as-path multipath-relax
 
 - name: Server Configuration
@@ -159,7 +159,7 @@
   become: yes
   tasks:
   - name: Copy Interfaces Configuration File
-    copy: src=./{{ ansible_hostname }}.cfg dest=/etc/network/interfaces
+    copy: src=./{{ inventory_hostname }}.cfg dest=/etc/network/interfaces
 
   - name: Restart Networking
     service: name=networking state=restarted

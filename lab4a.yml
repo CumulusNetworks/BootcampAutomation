@@ -58,18 +58,18 @@
         commit: true
         description: "Deploy Lab4a interface configuration"
         commands:
-            - add clag peer sys-mac {{ devices[ansible_hostname].clag_mac }} interface swp49-50 {{ devices[ansible_hostname].clag_role }} backup-ip {{ devices[ansible_hostname].clag_backupip }}
-            - add clag port bond {{ devices[ansible_hostname].VLANS[0].bond}} interface {{ devices[ansible_hostname].VLANS[0].interface }} clag-id 1
-            - add clag port bond {{ devices[ansible_hostname].VLANS[1].bond}} interface {{ devices[ansible_hostname].VLANS[1].interface }} clag-id 2
-            - add bond {{ devices[ansible_hostname].VLANS[0].bond }} bridge access 10
-            - add bond {{ devices[ansible_hostname].VLANS[1].bond }} bridge access 10
+            - add clag peer sys-mac {{ devices[inventory_hostname].clag_mac }} interface swp49-50 {{ devices[inventory_hostname].clag_role }} backup-ip {{ devices[inventory_hostname].clag_backupip }}
+            - add clag port bond {{ devices[inventory_hostname].VLANS[0].bond}} interface {{ devices[inventory_hostname].VLANS[0].interface }} clag-id 1
+            - add clag port bond {{ devices[inventory_hostname].VLANS[1].bond}} interface {{ devices[inventory_hostname].VLANS[1].interface }} clag-id 2
+            - add bond {{ devices[inventory_hostname].VLANS[0].bond }} bridge access 10
+            - add bond {{ devices[inventory_hostname].VLANS[1].bond }} bridge access 10
 
 - name: Server Configuration
   hosts: server01,server02
   become: yes
   tasks:
   - name: Copy Interfaces Configuration File
-    copy: src=./{{ ansible_hostname }}_lab4a.cfg dest=/etc/network/interfaces
+    copy: src=./{{ inventory_hostname }}_lab4a.cfg dest=/etc/network/interfaces
 
   - name: Restart Networking
     service: name=networking state=restarted
